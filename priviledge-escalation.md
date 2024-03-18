@@ -1,11 +1,11 @@
 # Priviledge escalation on linux
-## Some useful links to other collection of stuff good to know when you want to get better permissions.
+## Some useful links to other collections of stuff good to know when you want to get better permissions.
 https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/  
 https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md  
 https://book.hacktricks.xyz/linux-hardening/privilege-escalation  
 https://sushant747.gitbooks.io/total-oscp-guide/content/privilege_escalation_-_linux.html  
 
-When you get access to a new system you need to start look around to get e hold of what you can use to escalate your priviledges.
+When you get access to a new system you need to start look around to get a hold of what you can use to escalate your priviledges.
 Here are some methods you can start with.
 
 ## system enumeration
