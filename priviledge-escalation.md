@@ -8,6 +8,15 @@ https://sushant747.gitbooks.io/total-oscp-guide/content/privilege_escalation_-_l
 When you get access to a new system you need to start look around to get a hold of what you can use to escalate your priviledges.
 Here are some methods you can start with.
 
+- [Priviledge escalation on linux](#priviledge-escalation-on-linux)
+  - [system enumeration](#system-enumeration)
+  - [user enumeration](#user-enumeration)
+  - [network enumeration](#network-enumeration)
+  - [password enumeration](#password-enumeration)
+  - [Automated tools](#automated-tools)
+  - [Escalation via Kernel Exploits](#escalation-via-kernel-exploits)
+  - [Escalation via Stored Passwords](#escalation-via-stored-passwords)
+  - [Escalation via Weak File Permissions](#escalation-via-weak-file-permissions)
 ## system enumeration
 Build yourself an image about the system you are on.
 Start by getting the name  
