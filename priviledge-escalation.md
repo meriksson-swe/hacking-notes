@@ -3,7 +3,7 @@
 [g0tm1lk blog - basic-linux-privilege-escalation](https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/)  
 [PayloadsAllTheThings - Linux Privilege Escalation](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md)  
 [hacktricks - privilege-escalation](https://book.hacktricks.xyz/linux-hardening/privilege-escalation)  
-[sushant747 - privilege_escalation_-_linux](https://sushant747.gitbooks.io/total-oscp-guide/content/privilege_escalation_-_linux.html)  
+[sushant747 - privilege escalation - linux](https://sushant747.gitbooks.io/total-oscp-guide/content/privilege_escalation_-_linux.html)  
 
 When you get access to a new system you need to start look around to get a hold of what you can use to escalate your privileges.
 Here are some methods you can start with.
