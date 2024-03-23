@@ -1,14 +1,14 @@
-# Priviledge escalation on linux
+# Privilege escalation on linux
 ## Some useful links to other collections of stuff good to know when you want to get better permissions.
-https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/  
-https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md  
-https://book.hacktricks.xyz/linux-hardening/privilege-escalation  
-https://sushant747.gitbooks.io/total-oscp-guide/content/privilege_escalation_-_linux.html  
+[g0tm1lk blog - basic-linux-privilege-escalation](https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/) 
+[PayloadsAllTheThings - Linux Privilege Escalation](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md)
+[hacktricks - privilege-escalation](https://book.hacktricks.xyz/linux-hardening/privilege-escalation)
+[sushant747 - privilege_escalation_-_linux](https://sushant747.gitbooks.io/total-oscp-guide/content/privilege_escalation_-_linux.html)
 
-When you get access to a new system you need to start look around to get a hold of what you can use to escalate your priviledges.
+When you get access to a new system you need to start look around to get a hold of what you can use to escalate your privileges.
 Here are some methods you can start with.
 
-- [Priviledge escalation on linux](#priviledge-escalation-on-linux)
+- [Privilege escalation on linux](#privilege-escalation-on-linux)
   - [system enumeration](#system-enumeration)
   - [user enumeration](#user-enumeration)
   - [network enumeration](#network-enumeration)
@@ -859,7 +859,7 @@ Then run it
 When you get the control back type `su firefart` or `ssh firefart@[TARGET_IP]`
 
 ## Escalation via Stored Passwords
-When you get access to a machine, start looking in the history to see if it is any password used by the user. To do that use the command `history` or `less ~/.bash_history`. If you find something, try to locate where it goes and hopefully it escalates your priviledges or take you some where else.
+When you get access to a machine, start looking in the history to see if it is any password used by the user. To do that use the command `history` or `less ~/.bash_history`. If you find something, try to locate where it goes and hopefully it escalates your privileges or take you some where else.
 
 Other ways to find password can be
 ``` bash
@@ -884,7 +884,7 @@ password: Hacker123
 
 ---
 
-If it turns out that you have read access to `/etc/shadow` you can escalate your priviledges by "unshadowing" the file.
+If it turns out that you have read access to `/etc/shadow` you can escalate your privileges by "unshadowing" the file.
 ``` bash
 $ ls -la /etc/passwd
 -rw-r--r-- 1 root root 950 Jun 17  2020 /etc/passwd
@@ -1095,7 +1095,7 @@ User TCM may run the following commands on this host:
     (root) NOPASSWD: /usr/sbin/apache2
     (root) NOPASSWD: /bin/more
 ```
-Try to see it there is a way of exploiting vim and sudo to get higher priviledges.  
+Try to see it there is a way of exploiting vim and sudo to get higher privileges.  
 Seaching for vim and then click on sudo will show you this command `sudo vim -c ':!/bin/sh'`, so let's try it out
 ``` bash
 $ sudo vim -c ':!/bin/sh'
